@@ -1,4 +1,5 @@
-require("./debugger")("127.0.0.1", 10000, "luaidekey")
+--require("./debugger")("127.0.0.1", 10000, "luaidekey")
+require("mobdebug").start()
 TEX = "earth-icon26x26.png"
 local lot = os.clock()
 minetest.log("action", "[planets] Loading...")

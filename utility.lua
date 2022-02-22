@@ -10,3 +10,8 @@ function dump(o)
 		return tostring(o)
 	end
 end
+function interp(s, tab)
+	return (s:gsub('($%b{})', function(w) return tab[w:sub(3, -2)] or w end))
+end
+--print( interp("${name} is ${value}", {name = "foo", value = "bar"}) )
+getmetatable("").__mod = interp
