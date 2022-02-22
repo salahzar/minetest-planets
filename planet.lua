@@ -17,10 +17,12 @@ field[0.8,4.5;4,0.9;spinspeed;spinspeed;${spinspeed}]
 field[5.2,4.5;4,0.9;orbitspeed;orbitspeed;${orbitspeed}]
 label[1.4,1.1;Planets setting parameters]
 field[0.8,6.4;4,0.9;currentyaw;currentyaw;${currentyaw}]
-field[5.2,6.4;4,0.9;currenttheta;currenttheta;${currenttheta}]
-field[0.5,9.4;1.9,1.1;centerx;centerx;${centerx}]
-field[2.6,9.4;2.2,1.1;centery;centery;${centery}]
-field[5,9.4;2.2,1.1;centerz;centerz;${centerz}]
+field[5.2,6.4;4,0.9;current_theta;current theta;${currenttheta}]
+field[0.5,8.1;1.9,1.1;centerx;centerx;${centerx}]
+field[2.6,8.1;2.2,1.1;centery;centery;${centery}]
+field[5,8.1;2.2,1.1;centerz;centerz;${centerz}]
+button[0.5,9.7;9.4,0.9;change;change data]
+field[7.3,8.1;3,1.1;code;code;${code}]
 ]]
 planets.formname = "planets.properties"
 planets.running = false
@@ -34,6 +36,31 @@ planet = {
 		physical = false
 	}
 }
+
+minetest.register_on_player_receive_fields(function(player, formname, fields)
+	-- be sure to check this is really our formname to not pollute and receive others
+	if formname ~= planets.formname then
+		return false
+	end
+	local pldata = planets.list[fields.code]
+	if fields.quit then
+		minetest.log("quitting from form")
+	else
+		pldata.name = fields.name
+		pldata.radius = tonumber(fields.radius)
+		pldata.speedyaw = tonumber(fields.spinspeed)
+		pldata.speedtheta = tonumber(fields.orbitspeed)
+		pldata.theta = tonumber(fields.current_theta)
+		pldata.center = vector.new(
+			tonumber(fields.centerx),
+			tonumber(fields.centery),
+			tonumber(fields.centerz)
+		)
+
+		minetest.log(dump(fields))
+	end
+
+end)
 
 function planets.create_planet(pos, name, radius)
 	local new_id = planets.random_id(4)
@@ -64,9 +91,10 @@ function planet:on_rightclick(hitter)
 		  centery = pldata.center.y,
 		  centerz = pldata.center.z,
 		  currentyaw = self.object:get_yaw(),
-		  currenttheta = pldata.theta
+		  currenttheta = pldata.theta,
+		  code = self.myid
 		}
-	minetest.log("=====")
+
 	minetest.show_formspec(hitter:get_player_name(), planets.formname, formspec)
 	--local message = "MyId is " .. self.myid .. dump(planets.list[self.myid])
 	--minetest.chat_send_player(hitter:get_player_name(), message)
@@ -83,25 +111,20 @@ function planet:on_step(dtime)
 			local center = data.center
 			local radius = data.radius
 			local theta = data.theta
+			theta = theta + data.speedtheta
+			data.theta = theta
+			local x = center.x + radius * math.cos(theta)
+			local y = center.y
+			local z = center.z + radius * math.sin(theta)
 
-			if radius then
+			local np = vector.new(x, y, z)
 
-				theta = theta + data.speedtheta
-				data.theta = theta
-				local x = center.x + radius * math.cos(theta)
-				local y = center.y
-				local z = center.z + radius * math.sin(theta)
+			-- use move_to with true instead of set_pos to have smooth movement
+			self.object:move_to(np, true)
+			--self.object:set_pos(np)
 
-				local np = vector.new(x, y, z)
-
-				-- use move_to with true instead of set_pos to have smooth movement
-				self.object:move_to(np, true)
-				--self.object:set_pos(np)
-
-				local newyaw = self.object:get_yaw() + data.speedyaw
-				self.object:set_yaw(newyaw)
-
-			end
+			local newyaw = self.object:get_yaw() + data.speedyaw
+			self.object:set_yaw(newyaw)
 		end
 	end
 end
