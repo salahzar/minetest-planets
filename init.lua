@@ -13,8 +13,6 @@ dofile(MOD_PATH .. "/utility.lua")
 dofile(MOD_PATH .. "/planet.lua")
 dofile(MOD_PATH .. "/commands.lua")
 
-minetest.register_entity("planets:planet", planet)
-
 
 local tot = (os.clock() - lot) * 1000
 minetest.log("action", "[planets] Loaded in " .. tot .. "ms")

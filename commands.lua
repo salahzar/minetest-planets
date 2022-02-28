@@ -4,19 +4,12 @@ minetest.register_craftitem("planets:placer", {
 	on_place = function(itemstack, placer, pointed_thing)
 		if pointed_thing.type ~= "node" then return end
 
-		local position = pointed_thing.above
-		local obj = minetest.add_entity(position, "planets:planet")
-		--itemstack:take_item()
-		entity = obj:get_luaentity()
-		entity.initialized = false
-		planet_id = planets.create_planet(position, "newname",10)
-		entity.myid = planet_id
 
-		minetest.log("creating planet with id " .. planet_id)
-		local data = planets.list[planet_id]
-		data.object = obj
-		entity.initialized=true
-		minetest.log("        data: " .. dump(data))
+
+		local position = pointed_thing.above
+		planets.ask_formspec("",position)
+
+
 
 		return itemstack
 	end,
